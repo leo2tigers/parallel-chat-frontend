@@ -1,3 +1,6 @@
+body{
+    font-family: Questrial; 
+}
 :root {
     --primary-color: #FDDADA;
     --secondary-color: #FFB6B6;
