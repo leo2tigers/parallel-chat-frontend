@@ -1,0 +1,122 @@
+html{
+    font-family: 'Questrial','Prompt',sans-serif; 
+    background-color: var(--primary-color);
+}
+:root {
+    --primary-color: #FDDADA;
+    --secondary-color: #FFB6B6;
+    --text-color: #2A2D33;
+    --box-color: #FEEDED;
+    --chat-shadow: 0px 2px 4px rgba(0,0,0,0.2), 0px -2px 4px rgba(0,0,0,0.1)
+  }
+  
+  [data-theme="dark"] {
+    --primary-color: #FDDADA;
+    --secondary-color: #FFB6B6;
+    --text-color: #FEFEFE;
+    --box-color: #FEEDED;
+    --chat-shadow: 0px 2px 4px rgba(0,0,0,0.1)
+  }
+
+#container {
+    display: flex;
+    justify-content: center;
+    height: 200px;
+}
+
+.box-login {
+    background-color: var(--box-color);
+    border-radius: 25px;
+    width: 250px;
+    padding: 2em;
+    text-align: center; 
+    margin-top: 8em;
+}
+
+.box-chat {
+    background-color: var(--box-color);
+    border-radius: 25px;
+    width: 100%;
+    padding: 2em;
+    text-align: center; 
+    margin-top: 8em;
+}
+
+.inbox {
+    background-color: var(--secondary-color);
+    border: none;
+    outline: none;
+}
+
+.inbox-white {
+    background-color: #FEFEFE;
+    border: none;
+    outline: none;
+}
+
+.chatspace {
+    background-color: #FEFEFE;
+    height: 500px;
+    border-radius: none;
+    text-align: center; 
+}
+
+.chatinputbox {
+    background-color: var(--secondary-color);
+    border-radius: none;
+}
+
+.box-insidechat {
+    height: 1.5rem;
+    padding: 2.5rem;
+}
+
+.box-insidechat-active {
+    height: 1.5rem;
+    padding: 2.5rem;
+    background-color: var(--secondary-color);
+    box-shadow: var(--chat-shadow);
+}
+
+.textheader {
+    font-size: 2.0em;
+    font-weight: bold;
+}
+
+.textchatheader {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.bgcolor {
+    background-color: var(--primary-color);
+}
+
+.menubgcolor {
+    background-color: var(--secondary-color);
+    padding: 1.2em;
+}
+
+.button {
+    transition: all .2s ease-in;
+    width: 100px;
+    margin: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    background: rgba(255, 255, 255, 0);
+    color: var(--secondary-color);
+    border: 1px solid var(--secondary-color);
+    box-sizing: border-box;
+    border-radius: 5px;
+}
+
+.button:hover {
+    background: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+  }
+
+.submenu {
+    box-shadow: 0px -4px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--primary-color);
+}
