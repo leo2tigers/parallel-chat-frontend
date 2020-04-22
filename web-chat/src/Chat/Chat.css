@@ -53,8 +53,7 @@ body{
 
 .inbox-white {
     background-color: #FEFEFE;
-    border: none;
-    outline: none;
+    width : 100%;
 }
 
 .chatspace {
@@ -68,6 +67,7 @@ body{
 .chatinputbox {
     background-color: var(--secondary-color);
     border-radius: none;
+    padding: 10px 20px;
 }
 
 .box-insidechat {
@@ -169,6 +169,7 @@ body{
     width:100%;
     align-items: flex-start;
 }
+
 .msg-bubble{
     background-color: rgb(192, 235, 195);
     border-radius: 50px 0px 50px 50px;
@@ -189,13 +190,48 @@ body{
     margin-bottom:0 ;
     margin: 1.5vh;
     word-break: break-all;
+    color: black;
 }
 .wraper .time{
     display: flex;
     flex-direction: row-reverse;
     align-items: flex-end;
+    color: gray;
 }
 
 .msg-other .wraper .time{
     flex-direction: row;
+}
+.msg-other .wraper h6{
+    margin-left: 1vh;
+    font-size: 2rem;
+}
+.msg-myself .wraper h6{
+    margin-right: 1vh;
+    font-size: 2rem;
+}
+.searchbar{
+    background-color: var(--primary-color);
+}
+.input-bar{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    width: 100%;
+    background-color: white;
+}
+.input-msg-box{
+    background-color: transparent;
+    border: 0;
+    width: 100%;
+    padding-top:1vh ;
+    padding-left: 1vh;
+    overflow: auto;
+    outline: none;
+    line-height: 1.0;
+}
+
+.input-button{
+    right : 0;
+    background-color: var(--primary-color);
 }
