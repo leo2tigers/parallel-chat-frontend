@@ -1,51 +1,74 @@
 import React from 'react'
 import './Login.css'
+import {signIn, signOut} from "../../src/LocalStorageService"
+
 class Login extends React.Component{
     constructor(props){
         super(props)
         this.state={
-
+            username:"",
+            password:"",
         }
     }
     
-    fetch(){
+    handleSignIn=()=>{
+        if(this.state.username===""){
+            return alert("please put username")
+        }
+        if(this.state.password===""){
+            return alert("please put password")
+        }
+        signIn(1,this.state.username,"0")
+        window.location.href="/chat"
+    }
 
+    handleWrite=(e)=>{
+        if(e.target.name === "username"){
+            this.setState({username : e.target.value})
+        }else if(e.target.name === "password"){
+            this.setState({password : e.target.value})
+        }
+    }
+    onEnter=(e)=>{
+        if(e.keyCode === 13){
+            this.handleSignIn()
+        }
     }
 
     componentDidMount(){
-
+        signOut()
     }
 
     render(){
         return(
-            <div class="bgcolor">
-                <div class="container justify-content-center">
-                    <div class="row">
-                        <div class="col-md-12" align="center">
-                            <div class="box-login">
-                                <div class="row">
-                                    <div class="col-md-12 textheader">
+            <div className="bgcolor">
+                <div className="container justify-content-center">
+                    <div className="row">
+                        <div className="col-md-12" align="center">
+                            <div className="box-login">
+                                <div className="row">
+                                    <div className="col-md-12 textheader">
                                         Paraloid
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <label htmlFor="userId-input">username</label>
+                                <div className="row">
+                                    <label>username</label>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <input id="userId-input" class="inbox"/>
+                                <div className="row">
+                                    <div className="col-md-12">
+                                        <input className="inbox" name="username" onChange={this.handleWrite} onKeyDown={this.onEnter}/>
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <label htmlFor="userId-input">password</label>
+                                <div className="row">
+                                    <label>password</label>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <input class="inbox"/>
+                                <div className="row">
+                                    <div className="col-md-12">
+                                        <input className="inbox" type="password" name="password" onChange={this.handleWrite} onKeyDown={this.onEnter}/>
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <button class="button">Login</button>
+                                <div className="row">
+                                    <button id="signIn" className="button" onClick={this.handleSignIn}>Login</button>
                                 </div>
                             </div>
                         </div>
