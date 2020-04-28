@@ -171,11 +171,11 @@ body{
 }
 
 .msg-bubble{
+    display: table-cell;
     background-color: rgb(192, 235, 195);
     border-radius: 50px 0px 50px 50px;
     padding-bottom: 0;
     padding: 1vh;
-    width: fit-content;
     max-width: 70%;
     margin: 0vh;
     text-align: left;
@@ -187,18 +187,19 @@ body{
 .msg-bubble p{
     display: inline-table;
     width: fit-content;
-    margin-bottom:0 ;
-    margin: 1.5vh;
-    word-break: break-all;
+    margin: 0.5vh;
     color: black;
 }
 .wraper .time{
     display: flex;
+    width: 100%;
     flex-direction: row-reverse;
     align-items: flex-end;
     color: gray;
 }
-
+.wraper .time #timesend{
+    margin: 0;
+}
 .msg-other .wraper .time{
     flex-direction: row;
 }
