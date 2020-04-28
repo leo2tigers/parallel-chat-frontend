@@ -4,6 +4,8 @@ import profileimage from "./profileimg.jpg";
 import TextField from "@material-ui/core/TextField";
 import SendIcon from "@material-ui/icons/Send";
 import IconButton from "@material-ui/core/IconButton";
+import socketIOClient from "socket.io-client";
+import { signOut, setCurrentGroup, getCurrentGroup, getUsername} from "../../src/LocalStorageService"
 
 class Chat extends React.Component {
   constructor(props) {
@@ -14,72 +16,107 @@ class Chat extends React.Component {
       group_name: "",
       group_list: [],
       group_select_id: "",
-      messages: []
+      messages: [],
+      endpoint: "",
+      loadData : false,
+      error: { disconenct: "" }
     };
   }
-
-  fetchData = () => {
+  respose = () => {
+    const socket = socketIOClient(this.state.endpoint);
+    socket.emit("join room", {
+      user_id: this.state.user_id,
+      group_id: this.state.group_select_id
+    });
+    socket.on("load message", async res => {
+      await this.setState({ messages: res });
+    });
+    socket.on("connect", async res => {
+      await this.setState({ messages: [] });
+    });
+    socket.on("disconnenct", async res => {
+      await this.setState({ ...this.state.error, disconenct: res });
+    });
+  };
+  handleSignOut = async() => {
+    await signOut()
+    window.location.href="/"
+  }
+  fetchData = async() => {
     /// mock data
+    await this.setState({group_select_id : getCurrentGroup(),user_name : getUsername()})
+    console.log(getCurrentGroup())
     let list = [
-      { id: "1", name: "group A" },
-      { id: "2", name: "group B" },
-      { id: "3", name: "group C" },
-      { id: "4", name: "group D" },
-      { id: "5", name: "group E" },
-      { id: "6", name: "group F" },
-      { id: "7", name: "group G" },
-      { id: "8", name: "group H" },
-      { id: "9", name: "group I" },
-      { id: "10", name: "group J" },
-      { id: "11", name: "group K" },
-      { id: "12", name: "group L" }
+      { group_id: "1", name: "group A" },
+      { group_id: "2", name: "group B" },
+      { group_id: "3", name: "group C" },
+      { group_id: "4", name: "group D" },
+      { group_id: "5", name: "group E" },
+      { group_id: "6", name: "group F" },
+      { group_id: "7", name: "group G" },
+      { group_id: "8", name: "group H" },
+      { group_id: "9", name: "group I" },
+      { group_id: "10", name: "group J" },
+      { group_id: "11", name: "group K" },
+      { group_id: "12", name: "group L" }
     ];
     let msg = [
       {
-        id: "1",
-        text:
-          "hello world hello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello world",
+        msg_id: "1",
+        text: "hello world ",
         user_name: "suchut",
-        user_id: "1"
+        user_id: "1",
+        timestamp : "time",
       },
       {
-        id: "2",
-        text:
-          "hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohello",
-        user_name: "it",
-        user_id: "2"
+        msg_id: "2",
+        text: "สวัสดี เราชื่อ อิท",
+        user_name: this.state.user_name,
+        user_id: 2,
+        timestamp : "time"
       }
     ];
     this.setState({
-      user_id: "1",
-      user_name: "suchut",
-      group_name: "group B",
+      user_id : 2,
       group_list: list,
-      group_select_id: "2",
       messages: msg,
-      filter: ""
+      filter: "",
+      loadData:true,
     });
   };
 
   componentDidMount() {
+    if(!getUsername()){
+      window.location.href = "/"
+    }
     this.fetchData();
   }
 
-  handleSelect = (id, name) => {
-    this.setState({
+  handleSelect = async(id, name) => {
+    //const socket = socketIOClient(this.state.endpoint);
+    await this.setState({
       group_name: name,
       group_select_id: id
     });
+    setCurrentGroup(id)
+    /*socket.emit("join room", {
+      user_id: this.state.user_id,
+      group_id: this.state.group_select_id
+    });*/
   };
+
   handleSearch = e => {
     this.setState({ filter: e.target.value });
   };
+
   renderlist() {
     return this.state.group_list
-      .filter(item => item.name.toLowerCase().includes(this.state.filter.toLowerCase()))
+      .filter(item =>
+        item.name.toLowerCase().includes(this.state.filter.toLowerCase())
+      )
       .map((item, index) => (
         <>
-          {this.state.group_select_id === item.id ? (
+          {this.state.group_select_id === item.group_id ? (
             <div
               key={index}
               className="box-insidechat-active textchatheader"
@@ -92,7 +129,7 @@ class Chat extends React.Component {
               key={index}
               className="box-insidechat textchatheader"
               align="left"
-              onClick={() => this.handleSelect(item.id, item.name)}
+              onClick={() => this.handleSelect(item.group_id, item.name)}
             >
               <p>{item.name}</p>
             </div>
@@ -113,7 +150,7 @@ class Chat extends React.Component {
                 <div className="msg-bubble">
                   <p>{item.text}</p>
                 </div>
-                <p>{"time"}</p>
+                <p id="timesend">{"time"}</p>
               </div>
             </div>
           </div>
@@ -126,7 +163,7 @@ class Chat extends React.Component {
                 <div className="msg-bubble">
                   <p>{item.text}</p>
                 </div>
-                <p>{"time"}</p>
+                <p id="timesend">{"time"}</p>
               </div>
             </div>
           </div>
@@ -145,6 +182,9 @@ class Chat extends React.Component {
   }
 
   render() {
+    if(!this.state.loadData){
+      return null
+    }
     return (
       <div className="container">
         <div className="box-chat">
@@ -181,7 +221,7 @@ class Chat extends React.Component {
               <div className="col-md-11 textchatheader">
                 {this.state.group_name}
               </div>
-              <div className="col-md-1">Logout</div>
+              <div className="col-md-1"><p onClick={this.handleSignOut} style={{cursor:"pointer"}}>Logout</p></div>
             </div>
             <div className="row">
               <div className="chatspace">{this.renderMessage()}</div>
@@ -189,10 +229,10 @@ class Chat extends React.Component {
             <div className="row chatinputbox" style={{ paddingTop: "1.0em" }}>
               <div className="input-bar">
                 <textarea
-                    style={{resize:'none'}}
-                    placeholder="type here"
-                    aria-label="Username"
-                    className="input-msg-box"
+                  style={{ resize: "none" }}
+                  placeholder="type here"
+                  aria-label="Username"
+                  className="input-msg-box"
                 ></textarea>
                 <div className="input-button">
                   <IconButton aria-label="send">
