@@ -13,4 +13,14 @@ let getCurrentGroup = () => {
 let getUsername = () => {
   return localStorage.getItem("username");
 };
-export { signIn, signOut, setCurrentGroup, getCurrentGroup, getUsername };
+let getUserId = () => {
+  return localStorage.getItem("user_id");
+};
+export {
+  signIn,
+  signOut,
+  setCurrentGroup,
+  getCurrentGroup,
+  getUsername,
+  getUserId
+};

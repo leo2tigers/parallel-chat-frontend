@@ -3,9 +3,19 @@ import "./Chat.css";
 import profileimage from "./profileimg.jpg";
 import TextField from "@material-ui/core/TextField";
 import SendIcon from "@material-ui/icons/Send";
+import AddIcon from '@material-ui/icons/Add';
+import PersonAddIcon from '@material-ui/icons/PersonAdd';
 import IconButton from "@material-ui/core/IconButton";
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import axios from "axios";
 import socketIOClient from "socket.io-client";
-import { signOut, setCurrentGroup, getCurrentGroup, getUsername} from "../../src/LocalStorageService"
+import {
+  signOut,
+  setCurrentGroup,
+  getCurrentGroup,
+  getUsername,
+  getUserId
+} from "../../src/LocalStorageService";
 
 class Chat extends React.Component {
   constructor(props) {
@@ -18,7 +28,7 @@ class Chat extends React.Component {
       group_select_id: "",
       messages: [],
       endpoint: "",
-      loadData : false,
+      loadData: false,
       error: { disconenct: "" }
     };
   }
@@ -38,14 +48,24 @@ class Chat extends React.Component {
       await this.setState({ ...this.state.error, disconenct: res });
     });
   };
-  handleSignOut = async() => {
-    await signOut()
-    window.location.href="/"
-  }
-  fetchData = async() => {
+  handleSignOut = async () => {
+    await signOut();
+    window.location.href = "/";
+  };
+  fetchData = async () => {
     /// mock data
-    await this.setState({group_select_id : getCurrentGroup(),user_name : getUsername()})
-    console.log(getCurrentGroup())
+    await this.setState(
+      { group_select_id: getCurrentGroup(), user_name: getUsername(), user_id: getUserId()}
+    );
+    try {
+      let res = await axios.get(
+        process.env.REACT_APP_BACKEND_URL + "/group/" + this.state.user_id,{ withCredentials: true }
+      );
+      console.log(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+    console.log(getCurrentGroup());
     let list = [
       { group_id: "1", name: "group A" },
       { group_id: "2", name: "group B" },
@@ -66,39 +86,39 @@ class Chat extends React.Component {
         text: "hello world ",
         user_name: "suchut",
         user_id: "1",
-        timestamp : "time",
+        timestamp: "time"
       },
       {
         msg_id: "2",
         text: "สวัสดี เราชื่อ อิท",
         user_name: this.state.user_name,
         user_id: 2,
-        timestamp : "time"
+        timestamp: "time"
       }
     ];
     this.setState({
-      user_id : 2,
+      user_id: 2,
       group_list: list,
       messages: msg,
       filter: "",
-      loadData:true,
+      loadData: true
     });
   };
 
   componentDidMount() {
-    if(!getUsername()){
-      window.location.href = "/"
+    if (!getUsername()) {
+      window.location.href = "/";
     }
     this.fetchData();
   }
 
-  handleSelect = async(id, name) => {
+  handleSelect = async (id, name) => {
     //const socket = socketIOClient(this.state.endpoint);
     await this.setState({
       group_name: name,
       group_select_id: id
     });
-    setCurrentGroup(id)
+    setCurrentGroup(id);
     /*socket.emit("join room", {
       user_id: this.state.user_id,
       group_id: this.state.group_select_id
@@ -110,6 +130,9 @@ class Chat extends React.Component {
   };
 
   renderlist() {
+    if(this.state.group_list.length === 0){
+      return <h5>No group added yet</h5>
+    }
     return this.state.group_list
       .filter(item =>
         item.name.toLowerCase().includes(this.state.filter.toLowerCase())
@@ -134,6 +157,7 @@ class Chat extends React.Component {
               <p>{item.name}</p>
             </div>
           )}
+          <hr style={{ margin:"1px 2vh",borderTop:"1px solid #BFBFBF" }}/>
         </>
       ));
   }
@@ -174,27 +198,39 @@ class Chat extends React.Component {
   renderMenu() {
     return (
       <>
-        <div className="col-xs-4">Icon</div>
-        <div className="col-xs-4">Icon</div>
-        <div className="col-xs-4">Icon</div>
+        <div className="col-xs-4">
+        <IconButton aria-label="create-group" style={{backgroundColor:"var(--box-color)"}}>
+          <AddIcon fontSize="large"/>
+        </IconButton>
+        </div>
+        <div className="col-xs-4">
+        <IconButton aria-label="person-add" style={{backgroundColor:"var(--box-color)"}}>
+          <PersonAddIcon fontSize="large"/>
+        </IconButton>
+        </div>
+        <div className="col-xs-4">
+        <IconButton aria-label="exit-from-group" style={{backgroundColor:"var(--box-color)"}}>
+            <ExitToAppIcon fontSize="large"/>
+        </IconButton>
+        </div>
       </>
     );
   }
 
   render() {
-    if(!this.state.loadData){
-      return null
+    if (!this.state.loadData) {
+      return null;
     }
     return (
       <div className="container">
         <div className="box-chat">
           <div className="col-md-4 con">
-            <div className="row menubgcolor" align="left">
+            <div className="row menubgcolor" >
               <div className="textchatheader" align="left">
                 Welcome back, {this.state.user_name}
               </div>
             </div>
-            <div className="row searchbar">
+            <div className="row searchbar" >
               <div className="col-md-12">
                 <TextField
                   fullWidth
@@ -221,7 +257,11 @@ class Chat extends React.Component {
               <div className="col-md-11 textchatheader">
                 {this.state.group_name}
               </div>
-              <div className="col-md-1"><p onClick={this.handleSignOut} style={{cursor:"pointer"}}>Logout</p></div>
+              <div className="col-md-1">
+                <p onClick={this.handleSignOut} style={{ cursor: "pointer",fontWeight:"bold" }}>
+                  Logout
+                </p>
+              </div>
             </div>
             <div className="row">
               <div className="chatspace">{this.renderMessage()}</div>
