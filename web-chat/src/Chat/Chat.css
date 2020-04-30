@@ -68,8 +68,8 @@ body{
 }
 
 .box-insidechat-active {
-    height: 5vh;
-    padding: 3vh;
+    height: 1.5vh;
+    padding: 2.5rem;
     background-color: var(--primary-color);
     box-shadow: var(--chat-shadow);
     border-left: 1vh solid #FFB6B6 ;

@@ -3,10 +3,10 @@ import "./Chat.css";
 import profileimage from "./profileimg.jpg";
 import TextField from "@material-ui/core/TextField";
 import SendIcon from "@material-ui/icons/Send";
-import AddIcon from '@material-ui/icons/Add';
-import PersonAddIcon from '@material-ui/icons/PersonAdd';
+import AddIcon from "@material-ui/icons/Add";
+import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import IconButton from "@material-ui/core/IconButton";
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import axios from "axios";
 import socketIOClient from "socket.io-client";
 import {
@@ -14,7 +14,8 @@ import {
   setCurrentGroup,
   getCurrentGroup,
   getUsername,
-  getUserId
+  getUserId,
+  getToken
 } from "../../src/LocalStorageService";
 
 class Chat extends React.Component {
@@ -29,7 +30,8 @@ class Chat extends React.Component {
       messages: [],
       endpoint: "",
       loadData: false,
-      error: { disconenct: "" }
+      error: { disconenct: "" },
+      filter: ""
     };
   }
   respose = () => {
@@ -54,32 +56,32 @@ class Chat extends React.Component {
   };
   fetchData = async () => {
     /// mock data
-    await this.setState(
-      { group_select_id: getCurrentGroup(), user_name: getUsername(), user_id: getUserId()}
-    );
+    await this.setState({
+      group_select_id: getCurrentGroup(),
+      user_name: getUsername(),
+      user_id: getUserId()
+    });
     try {
       let res = await axios.get(
-        process.env.REACT_APP_BACKEND_URL + "/group/" + this.state.user_id,{ withCredentials: true }
+        process.env.REACT_APP_BACKEND_URL +
+          "/group/group-list/" +
+          this.state.user_id
       );
+      let selected_group = res.data
+      .filter(item =>
+        item._id===getCurrentGroup()
+      )
+      if(selected_group.length >0){
+        this.setState({ group_name : selected_group[0].groupName })
+      }
+      this.setState({ group_list: res.data,});
       console.log(res.data);
     } catch (err) {
       console.log(err);
     }
+   
     console.log(getCurrentGroup());
-    let list = [
-      { group_id: "1", name: "group A" },
-      { group_id: "2", name: "group B" },
-      { group_id: "3", name: "group C" },
-      { group_id: "4", name: "group D" },
-      { group_id: "5", name: "group E" },
-      { group_id: "6", name: "group F" },
-      { group_id: "7", name: "group G" },
-      { group_id: "8", name: "group H" },
-      { group_id: "9", name: "group I" },
-      { group_id: "10", name: "group J" },
-      { group_id: "11", name: "group K" },
-      { group_id: "12", name: "group L" }
-    ];
+    /*
     let msg = [
       {
         msg_id: "1",
@@ -95,14 +97,8 @@ class Chat extends React.Component {
         user_id: 2,
         timestamp: "time"
       }
-    ];
-    this.setState({
-      user_id: 2,
-      group_list: list,
-      messages: msg,
-      filter: "",
-      loadData: true
-    });
+    ];*/
+    this.setState({ loadData: true });
   };
 
   componentDidMount() {
@@ -129,35 +125,90 @@ class Chat extends React.Component {
     this.setState({ filter: e.target.value });
   };
 
+  handleCreateGroup = async () => {
+    let groupname = prompt("Please enter group name");
+    if (groupname === null) {
+      return;
+    }
+    if (groupname.length < 1) {
+      alert("your group name must has at least 1 character");
+      return;
+    }
+    try {
+      let res = await axios.post(process.env.REACT_APP_BACKEND_URL + "/group", {
+        creator: this.state.user_id,
+        groupName: groupname
+      });
+      this.fetchData();
+    } catch (err) {
+      if (err && err.response) console.log(err.response);
+    }
+  };
+  handleLeaveGroup = async () => {
+    if(this.state.group_select_id === ""){
+      alert("please select group to leave")
+      return;
+    }
+    let confirm = window.confirm("Do you want to leave from "+this.state.group_name+"?")
+    if(confirm){
+      try{
+        axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
+        let res = await axios.delete(process.env.REACT_APP_BACKEND_URL+"/user/group",{
+          groupId : this.state.group_select_id
+        })
+        this.fetchData()
+      }catch(err){
+        alert("error")
+        console.log(err.respone)
+      }
+    }
+  };
+  handleJoinGroup = async(e)=>{
+    let groupId = prompt("Please enter group ID");
+    if (groupId === null) {
+      return;
+    }
+      try{
+        axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
+        let res = await axios.post(process.env.REACT_APP_BACKEND_URL+"/user/group",{
+          groupId : groupId
+        })
+        this.fetchData()
+      }catch(err){
+        alert("error")
+        console.log(err)
+      }
+    
+  }
   renderlist() {
-    if(this.state.group_list.length === 0){
-      return <h5>No group added yet</h5>
+    if (this.state.group_list.length === 0) {
+      return <h5>No group added yet</h5>;
     }
     return this.state.group_list
       .filter(item =>
-        item.name.toLowerCase().includes(this.state.filter.toLowerCase())
+        item.groupName.toLowerCase().includes(this.state.filter.toLowerCase())
       )
       .map((item, index) => (
         <>
-          {this.state.group_select_id === item.group_id ? (
+          {this.state.group_select_id === item._id ? (
             <div
               key={index}
               className="box-insidechat-active textchatheader"
               align="left"
             >
-              <p>{item.name}</p>
+              <p>{item.groupName}</p>
             </div>
           ) : (
             <div
               key={index}
               className="box-insidechat textchatheader"
               align="left"
-              onClick={() => this.handleSelect(item.group_id, item.name)}
+              onClick={() => this.handleSelect(item._id, item.groupName)}
             >
-              <p>{item.name}</p>
+              <p>{item.groupName}</p>
             </div>
           )}
-          <hr style={{ margin:"1px 2vh",borderTop:"1px solid #BFBFBF" }}/>
+          <hr style={{ margin: "1px 2vh", borderTop: "1px solid #BFBFBF" }} />
         </>
       ));
   }
@@ -199,19 +250,31 @@ class Chat extends React.Component {
     return (
       <>
         <div className="col-xs-4">
-        <IconButton aria-label="create-group" style={{backgroundColor:"var(--box-color)"}}>
-          <AddIcon fontSize="large"/>
-        </IconButton>
+          <IconButton
+            aria-label="create-group"
+            style={{ backgroundColor: "var(--box-color)" }}
+            onClick={this.handleCreateGroup}
+          >
+            <AddIcon fontSize="large" />
+          </IconButton>
         </div>
         <div className="col-xs-4">
-        <IconButton aria-label="person-add" style={{backgroundColor:"var(--box-color)"}}>
-          <PersonAddIcon fontSize="large"/>
-        </IconButton>
+          <IconButton
+            aria-label="person-add"
+            style={{ backgroundColor: "var(--box-color)" }}
+            onClick={this.handleJoinGroup}
+          >
+            <GroupAddIcon fontSize="large" />
+          </IconButton>
         </div>
         <div className="col-xs-4">
-        <IconButton aria-label="exit-from-group" style={{backgroundColor:"var(--box-color)"}}>
-            <ExitToAppIcon fontSize="large"/>
-        </IconButton>
+          <IconButton
+            aria-label="exit-from-group"
+            style={{ backgroundColor: "var(--box-color)" }}
+            onClick={this.handleLeaveGroup}
+          >
+            <ExitToAppIcon fontSize="large" />
+          </IconButton>
         </div>
       </>
     );
@@ -225,12 +288,12 @@ class Chat extends React.Component {
       <div className="container">
         <div className="box-chat">
           <div className="col-md-4 con">
-            <div className="row menubgcolor" >
+            <div className="row menubgcolor">
               <div className="textchatheader" align="left">
                 Welcome back, {this.state.user_name}
               </div>
             </div>
-            <div className="row searchbar" >
+            <div className="row searchbar">
               <div className="col-md-12">
                 <TextField
                   fullWidth
@@ -256,9 +319,13 @@ class Chat extends React.Component {
             <div className="row menubgcolor">
               <div className="col-md-11 textchatheader">
                 {this.state.group_name}
+                <br/>id : {this.state.group_select_id}
               </div>
               <div className="col-md-1">
-                <p onClick={this.handleSignOut} style={{ cursor: "pointer",fontWeight:"bold" }}>
+                <p
+                  onClick={this.handleSignOut}
+                  style={{ cursor: "pointer", fontWeight: "bold" }}
+                >
                   Logout
                 </p>
               </div>
