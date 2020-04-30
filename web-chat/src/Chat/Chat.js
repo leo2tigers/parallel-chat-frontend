@@ -31,8 +31,10 @@ class Chat extends React.Component {
       endpoint: "",
       loadData: false,
       error: { disconenct: "" },
-      filter: ""
+      filter: "",
+      sendingMessage : "",
     };
+    this.chat = React.createRef();
   }
   respose = () => {
     const socket = socketIOClient(this.state.endpoint);
@@ -62,24 +64,24 @@ class Chat extends React.Component {
       user_id: getUserId()
     });
     try {
-      let res = await axios.get(
+      let res1 = await axios.get(
         process.env.REACT_APP_BACKEND_URL +
           "/group/group-list/" +
           this.state.user_id
       );
-      let selected_group = res.data
+      let selected_group = res1.data
       .filter(item =>
         item._id===getCurrentGroup()
       )
       if(selected_group.length >0){
         this.setState({ group_name : selected_group[0].groupName })
       }
-      this.setState({ group_list: res.data,});
-      console.log(res.data);
+      this.setState({ group_list: res1.data,});
+      console.log(res1.data);
     } catch (err) {
       console.log(err);
     }
-   
+    
     console.log(getCurrentGroup());
     /*
     let msg = [
@@ -101,13 +103,36 @@ class Chat extends React.Component {
     this.setState({ loadData: true });
   };
 
-  componentDidMount() {
+  fetchGroupMessage=async()=>{
+      try{
+        console.log(this.state.group_select_id)
+        let res2 = await axios.get(process.env.REACT_APP_BACKEND_URL + "/message/group/"+this.state.group_select_id)
+        this.setState({messages : res2.data})
+        console.log(res2.data)
+      }catch(err){
+        console.log(err.response)
+      }
+  }
+
+  componentDidMount = async()=>{
     if (!getUsername()) {
       window.location.href = "/";
     }
-    this.fetchData();
+    await this.fetchData();
+    await this.fetchGroupMessage()
+    await this.scrollToBottom()
+    if(this.state.group_select_id !== ""){
+    }
+    
   }
-
+  componentDidUpdate = async(prevProp,prevState)=>{
+    if(prevState.group_select_id !== this.state.group_select_id){
+      await this.fetchGroupMessage()
+      
+        await this.scrollToBottom()
+      
+    }
+  }
   handleSelect = async (id, name) => {
     //const socket = socketIOClient(this.state.endpoint);
     await this.setState({
@@ -153,13 +178,13 @@ class Chat extends React.Component {
     if(confirm){
       try{
         axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
-        let res = await axios.delete(process.env.REACT_APP_BACKEND_URL+"/user/group",{
+        let res = await axios.patch(process.env.REACT_APP_BACKEND_URL+"/user/group",{
           groupId : this.state.group_select_id
         })
         this.fetchData()
       }catch(err){
         alert("error")
-        console.log(err.respone)
+        console.log(err.response)
       }
     }
   };
@@ -179,6 +204,35 @@ class Chat extends React.Component {
         console.log(err)
       }
     
+  }
+  handleSendMessage = async()=>{
+    /// fake message
+    if(this.state.sendingMessage === "") return
+    try{
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
+      let res = await axios.post(process.env.REACT_APP_BACKEND_URL + "/message",{
+        message : this.state.sendingMessage,
+        group : this.state.group_select_id,
+        sender : this.state.user_id,
+      })
+      this.setState({sendingMessage : ""})
+      await this.fetchGroupMessage()
+      await this.scrollToBottom()
+      console.log(res)
+    }catch(err){
+      console.log(err.response)
+    }
+  }
+  scrollToBottom = () => {
+    //this.state.ref.current.scrollIntoView({ behavior: "smooth" });
+    if(this.chat.current === null) return
+    let element = this.chat
+    console.log(element)
+    this.chat.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+    //element.scrollTop = element.scrollHeight;
+  }
+  handleWriteMessage = (e)=>{
+    this.setState({sendingMessage : e.target.value})
   }
   renderlist() {
     if (this.state.group_list.length === 0) {
@@ -212,20 +266,23 @@ class Chat extends React.Component {
         </>
       ));
   }
-
+  formatTime=(time)=>{
+    let format = new Date(time).toLocaleString();
+    return format;
+  }
   renderMessage() {
     return this.state.messages.map((item, index) => (
-      <>
-        {this.state.user_id === item.user_id ? (
+      <div ref={this.chat}>
+        {this.state.user_id === item.sender ? (
           <div className="msg-myself" key={index}>
             <img src={profileimage} className="profile-img" alt="me" />
             <div className="wraper">
               <h6>{item.user_name}</h6>
               <div className="time">
                 <div className="msg-bubble">
-                  <p>{item.text}</p>
+                  <p>{item.message}</p>
                 </div>
-                <p id="timesend">{"time"}</p>
+                <p id="timesend">{this.formatTime(item.createdAt)}</p>
               </div>
             </div>
           </div>
@@ -236,14 +293,14 @@ class Chat extends React.Component {
               <h6>{item.user_name}</h6>
               <div className="time">
                 <div className="msg-bubble">
-                  <p>{item.text}</p>
+                  <p>{item.message}</p>
                 </div>
-                <p id="timesend">{"time"}</p>
+                <p id="timesend">{this.formatTime(item.createdAt)}</p>
               </div>
             </div>
           </div>
         )}
-      </>
+      </div>
     ));
   }
   renderMenu() {
@@ -336,13 +393,15 @@ class Chat extends React.Component {
             <div className="row chatinputbox" style={{ paddingTop: "1.0em" }}>
               <div className="input-bar">
                 <textarea
+                  value={this.state.sendingMessage}
+                  onChange = {this.handleWriteMessage}
                   style={{ resize: "none" }}
                   placeholder="type here"
                   aria-label="Username"
                   className="input-msg-box"
                 ></textarea>
                 <div className="input-button">
-                  <IconButton aria-label="send">
+                  <IconButton aria-label="send" onClick={this.handleSendMessage}>
                     <SendIcon />
                   </IconButton>
                 </div>
