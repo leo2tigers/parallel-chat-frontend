@@ -50,10 +50,11 @@ body{
 
 .chatspace {
     background-color: #FEFEFE;
+    width: 100%;
     height: 65vh;
     border-radius: none;
     text-align: center; 
-    overflow: auto;
+    overflow: scroll;
 }
 
 .chatinputbox {

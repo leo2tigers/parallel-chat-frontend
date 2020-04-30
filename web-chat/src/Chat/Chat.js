@@ -33,6 +33,7 @@ class Chat extends React.Component {
       error: { disconenct: "" },
       filter: "",
       sendingMessage : "",
+      members : new Map(),
     };
     this.chat = React.createRef();
   }
@@ -60,7 +61,6 @@ class Chat extends React.Component {
     /// mock data
     await this.setState({
       group_select_id: getCurrentGroup(),
-      user_name: getUsername(),
       user_id: getUserId()
     });
     try {
@@ -76,7 +76,26 @@ class Chat extends React.Component {
       if(selected_group.length >0){
         this.setState({ group_name : selected_group[0].groupName })
       }
-      this.setState({ group_list: res1.data,});
+      for(let i=0;i<res1.data.length;i++){
+        let group = res1.data[i].members
+        console.log(res1.data[i])
+        for(let j=0;j<group.length;j++){
+          console.log(group[j])
+          console.log(this.state.members.get(group[j]))
+          if(this.state.members.has(group[j])) continue
+          try{
+            let member = await axios.get(process.env.REACT_APP_BACKEND_URL + "/user/"+group[j])
+            this.state.members.set(group[j],member.data.name)
+            //console.log(member)
+          }catch(err){
+            console.log(err.response)
+          }
+          
+        }
+      }
+      console.log(this.state.members)
+     
+      await this.setState({ group_list: res1.data,user_name : this.state.members.get(getUserId())});
       console.log(res1.data);
     } catch (err) {
       console.log(err);
@@ -105,10 +124,8 @@ class Chat extends React.Component {
 
   fetchGroupMessage=async()=>{
       try{
-        console.log(this.state.group_select_id)
         let res2 = await axios.get(process.env.REACT_APP_BACKEND_URL + "/message/group/"+this.state.group_select_id)
         this.setState({messages : res2.data})
-        console.log(res2.data)
       }catch(err){
         console.log(err.response)
       }
@@ -160,6 +177,7 @@ class Chat extends React.Component {
       return;
     }
     try {
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
       let res = await axios.post(process.env.REACT_APP_BACKEND_URL + "/group", {
         creator: this.state.user_id,
         groupName: groupname
@@ -227,7 +245,6 @@ class Chat extends React.Component {
     //this.state.ref.current.scrollIntoView({ behavior: "smooth" });
     if(this.chat.current === null) return
     let element = this.chat
-    console.log(element)
     this.chat.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
     //element.scrollTop = element.scrollHeight;
   }
@@ -247,7 +264,7 @@ class Chat extends React.Component {
           {this.state.group_select_id === item._id ? (
             <div
               key={index}
-              className="box-insidechat-active textchatheader"
+              className="box-insidechat-active"
               align="left"
             >
               <p>{item.groupName}</p>
@@ -255,7 +272,7 @@ class Chat extends React.Component {
           ) : (
             <div
               key={index}
-              className="box-insidechat textchatheader"
+              className="box-insidechat"
               align="left"
               onClick={() => this.handleSelect(item._id, item.groupName)}
             >
@@ -277,7 +294,7 @@ class Chat extends React.Component {
           <div className="msg-myself" key={index}>
             <img src={profileimage} className="profile-img" alt="me" />
             <div className="wraper">
-              <h6>{item.user_name}</h6>
+              <h6>{this.state.members.get(item.sender)}</h6>
               <div className="time">
                 <div className="msg-bubble">
                   <p>{item.message}</p>
@@ -290,7 +307,7 @@ class Chat extends React.Component {
           <div className="msg-other" key={index}>
             <img src={profileimage} className="profile-img" alt="other" />
             <div className="wraper">
-              <h6>{item.user_name}</h6>
+              <h6>{this.state.members.get(item.sender)}</h6>
               <div className="time">
                 <div className="msg-bubble">
                   <p>{item.message}</p>
@@ -374,9 +391,9 @@ class Chat extends React.Component {
           </div>
           <div className="col-md-8">
             <div className="row menubgcolor">
-              <div className="col-md-11 textchatheader">
-                {this.state.group_name}
-                <br/>id : {this.state.group_select_id}
+              <div className="col-md-11">
+                <div className="textchatheader">{this.state.group_name}</div>
+                <div className="textchatheader">id : {this.state.group_select_id}</div>
               </div>
               <div className="col-md-1">
                 <p
