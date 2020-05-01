@@ -15,7 +15,7 @@ import {
   getCurrentGroup,
   getUsername,
   getUserId,
-  getToken
+  //getToken
 } from "../../src/LocalStorageService";
 class Chat extends React.Component {
   constructor(props) {
@@ -42,7 +42,7 @@ class Chat extends React.Component {
       user : this.state.user_id
     });
     this.state.socket.on('new-message',async(res) => {
-      console.log(res)
+      //console.log(res)
       if(res.group!==this.state.group_select_id) return;
       let arr = [...this.state.messages]
       arr.push(res)
@@ -60,49 +60,53 @@ class Chat extends React.Component {
       //await this.setState({ messages: res });
     });
     this.state.socket.on("change-focused-room-reply", res =>{
-      console.log(res)
+      //console.log(res)
     })
     this.state.socket.on('user-join',async res=>{
       console.log(res)
-      this.fetchData()
+      this.fetchGroupData()
       this.fetchGroupMessage()
-      /*
-      let arr = [...this.state.group_list]
-      arr.push(res)
-      await this.setState({group_list : arr})
-      await this.state.members.set(res.user,res.userDisplayname)
-      if(res.group!==this.state.group_select_id) return;
-      let msg = [...this.state.messages]
-      arr.push(res.userDisplayname+" joined the group")
-      await this.setState({messages : msg})
-      */
     });
     this.state.socket.on('user-leave',async res=>{
       console.log(res)
-      this.fetchData()
-      /*let arr = this.state.group_list
-      let arr2 = arr.filter((item)=>res.group!== item)
-      console.log(arr2)
-      await this.setState({group_list : arr2})
-      await this.state.members.set(res.user,res.userDisplayname)*/
+      this.fetchGroupData()
     });
     this.state.socket.on('new-group',async res=>{
       console.log(res)
     })
   };
+  /*checkUnread= async(groupId)=>{
+    try{
+      let res2 = await axios.get(process.env.REACT_APP_BACKEND_URL +"/unread/"+groupId+"/"+this.state.user_id)
+      //console.log(res2)
+    } catch(err){
+      console.log(err.response)
+    }finally{
+      return 1;
+    }
+
+  }*/
   handleSignOut = async () => {
     await signOut();
     window.location.href = "/";
   };
-  fetchData = async () => {
+  fetchUserData = async() =>{
+    await this.setState({
+      user_id: getUserId()
+    });
+      try{
+        let res2 = await axios.get(process.env.REACT_APP_BACKEND_URL +"/user/"+this.state.user_id)
+        await this.setState({user_name : res2.data.name})
+      }catch(err){
+        console.log(err.response)
+      }
+  }
+  fetchGroupData = async () => {
     /// mock data
     await this.setState({
       group_select_id: getCurrentGroup(),
-      user_id: getUserId()
     });
     try {
-      let res2 = await axios.get(process.env.REACT_APP_BACKEND_URL +"/user/"+this.state.user_id)
-      await this.setState({user_name : res2.data.name})
       let res1 = await axios.get(
         process.env.REACT_APP_BACKEND_URL +
           "/group/group-list/" +
@@ -135,29 +139,12 @@ class Chat extends React.Component {
       //console.log(this.state.members)
      
       await this.setState({ group_list: res1.data});
-      console.log(res1.data);
+      //console.log(res1.data);
     } catch (err) {
       console.log(err);
     }
     
-    console.log(getCurrentGroup());
-    /*
-    let msg = [
-      {
-        msg_id: "1",
-        text: "hello world ",
-        user_name: "suchut",
-        user_id: "1",
-        timestamp: "time"
-      },
-      {
-        msg_id: "2",
-        text: "สวัสดี เราชื่อ อิท",
-        user_name: this.state.user_name,
-        user_id: 2,
-        timestamp: "time"
-      }
-    ];*/
+    //console.log(getCurrentGroup());
     this.setState({ loadData: true });
   };
 
@@ -177,7 +164,8 @@ class Chat extends React.Component {
     if(this.state.socket === null){
       await this.setState({socket : socketIOClient(process.env.REACT_APP_BACKEND_SOCKET,{transports : ['websocket']})})
     }
-    await this.fetchData();
+    await this.fetchUserData();
+    await this.fetchGroupData();
     await this.respose();
     await this.scrollToBottom()
     if(this.state.group_select_id !== ""){
@@ -228,7 +216,7 @@ class Chat extends React.Component {
         groupName : groupname,
         user : this.state.user_id,
       })
-      this.fetchData();
+      this.fetchGroupData();
     } catch (err) {
       if (err && err.response) console.log(err.response);
     }
@@ -276,7 +264,7 @@ class Chat extends React.Component {
         //await this.fetchData()
       }catch(err){
         alert("error")
-        console.log(err)
+        console.log(err.response)
       }
     
   }
@@ -290,7 +278,7 @@ class Chat extends React.Component {
         group : this.state.group_select_id,
         sender : this.state.user_id,
       })*/
-      console.log(this.state.sendingMessage,this.state.group_select_id,this.state.user_id)
+      //console.log(this.state.sendingMessage,this.state.group_select_id,this.state.user_id)
       this.state.socket.emit('send-message',{
         message : this.state.sendingMessage,
         group : this.state.group_select_id,
