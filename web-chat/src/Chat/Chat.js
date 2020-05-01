@@ -44,7 +44,7 @@ class Chat extends React.Component {
     this.state.socket.on('new-message',async(res) => {
       console.log(res)
       if(res.group!==this.state.group_select_id) return;
-      let arr = this.state.messages
+      let arr = [...this.state.messages]
       arr.push(res)
       await this.setState({messages : arr})
       await this.scrollToBottom()
@@ -56,12 +56,39 @@ class Chat extends React.Component {
     });
     this.state.socket.on('disconnect', res => {
       console.log("disconnect")
-      
+      this.state.socket.connect()
       //await this.setState({ messages: res });
     });
     this.state.socket.on("change-focused-room-reply", res =>{
       console.log(res)
-  })
+    })
+    this.state.socket.on('user-join',async res=>{
+      console.log(res)
+      this.fetchData()
+      this.fetchGroupMessage()
+      /*
+      let arr = [...this.state.group_list]
+      arr.push(res)
+      await this.setState({group_list : arr})
+      await this.state.members.set(res.user,res.userDisplayname)
+      if(res.group!==this.state.group_select_id) return;
+      let msg = [...this.state.messages]
+      arr.push(res.userDisplayname+" joined the group")
+      await this.setState({messages : msg})
+      */
+    });
+    this.state.socket.on('user-leave',async res=>{
+      console.log(res)
+      this.fetchData()
+      /*let arr = this.state.group_list
+      let arr2 = arr.filter((item)=>res.group!== item)
+      console.log(arr2)
+      await this.setState({group_list : arr2})
+      await this.state.members.set(res.user,res.userDisplayname)*/
+    });
+    this.state.socket.on('new-group',async res=>{
+      console.log(res)
+    })
   };
   handleSignOut = async () => {
     await signOut();
@@ -74,6 +101,8 @@ class Chat extends React.Component {
       user_id: getUserId()
     });
     try {
+      let res2 = await axios.get(process.env.REACT_APP_BACKEND_URL +"/user/"+this.state.user_id)
+      await this.setState({user_name : res2.data.name})
       let res1 = await axios.get(
         process.env.REACT_APP_BACKEND_URL +
           "/group/group-list/" +
@@ -103,9 +132,9 @@ class Chat extends React.Component {
           
         }
       }
-      //sconsole.log(this.state.members)
+      //console.log(this.state.members)
      
-      await this.setState({ group_list: res1.data,user_name : this.state.members.get(getUserId())});
+      await this.setState({ group_list: res1.data});
       console.log(res1.data);
     } catch (err) {
       console.log(err);
@@ -149,18 +178,17 @@ class Chat extends React.Component {
       await this.setState({socket : socketIOClient(process.env.REACT_APP_BACKEND_SOCKET,{transports : ['websocket']})})
     }
     await this.fetchData();
-    await this.fetchGroupMessage()
     await this.respose();
     await this.scrollToBottom()
     if(this.state.group_select_id !== ""){
+      await this.fetchGroupMessage()
     }
     
   }
   componentDidUpdate = async(prevProp,prevState)=>{
     if(prevState.group_select_id !== this.state.group_select_id){
       await this.fetchGroupMessage()
-      
-        await this.scrollToBottom()
+      await this.scrollToBottom()
       
     }
   }
@@ -170,6 +198,7 @@ class Chat extends React.Component {
       group_select_id: id
     });
     setCurrentGroup(id);
+    if(this.state.group_select_id === "") return;
     this.state.socket.emit("change-focused-room", {
       group: this.state.group_select_id
     });
@@ -190,11 +219,15 @@ class Chat extends React.Component {
       return;
     }
     try {
-      axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
+      /*axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
       let res = await axios.post(process.env.REACT_APP_BACKEND_URL + "/group", {
         creator: this.state.user_id,
         groupName: groupname
-      });
+      });*/
+      await this.state.socket.emit('create-group',{
+        groupName : groupname,
+        user : this.state.user_id,
+      })
       this.fetchData();
     } catch (err) {
       if (err && err.response) console.log(err.response);
@@ -208,28 +241,39 @@ class Chat extends React.Component {
     let confirm = window.confirm("Do you want to leave from "+this.state.group_name+"?")
     if(confirm){
       try{
-        axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
+        /*axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
         let res = await axios.patch(process.env.REACT_APP_BACKEND_URL+"/user/group",{
           groupId : this.state.group_select_id
+        })*/
+        await this.state.socket.emit('leave-group',{
+          group : this.state.group_select_id,
+          user : this.state.user_id,
         })
-        this.fetchData()
+        //await this.fetchData()
+        await this.handleSelect("","")
+        await this.setState({messages : []})
+        
       }catch(err){
         alert("error")
         console.log(err.response)
       }
     }
   };
-  handleJoinGroup = async(e)=>{
+  handleJoinGroup = async()=>{
     let groupId = prompt("Please enter group ID");
     if (groupId === null) {
       return;
     }
       try{
-        axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
+        /*axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
         let res = await axios.post(process.env.REACT_APP_BACKEND_URL+"/user/group",{
           groupId : groupId
+        })*/
+        await this.state.socket.emit('join-group',{
+          group : groupId,
+          user : this.state.user_id,
         })
-        this.fetchData()
+        //await this.fetchData()
       }catch(err){
         alert("error")
         console.log(err)
@@ -261,7 +305,6 @@ class Chat extends React.Component {
   scrollToBottom = () => {
     //this.state.ref.current.scrollIntoView({ behavior: "smooth" });
     if(this.chat.current === null) return
-    let element = this.chat
     this.chat.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
     //element.scrollTop = element.scrollHeight;
   }
