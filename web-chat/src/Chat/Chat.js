@@ -16,7 +16,7 @@ import {
   getUsername,
   getUserId,
   //getToken
-} from "../../src/LocalStorageService";
+} from "../LocalStorageService";
 class Chat extends React.Component {
   constructor(props) {
     super(props);
