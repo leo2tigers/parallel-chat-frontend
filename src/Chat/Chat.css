@@ -1,0 +1,236 @@
+html{
+    font-family: 'Questrial','Prompt',sans-serif; 
+    background-color: var(--primary-color);
+}
+body{
+    background-color: var(--primary-color);
+
+}
+:root {
+    --primary-color: #FDDADA;
+    --secondary-color: #FFB6B6;
+    --text-color: #2A2D33;
+    --box-color: #FEEDED;
+    --chat-shadow: 0px 2px 4px rgba(0,0,0,0.2), 0px -2px 4px rgba(0,0,0,0.1)
+  }
+  
+  [data-theme="dark"] {
+    --primary-color: #FDDADA;
+    --secondary-color: #FFB6B6;
+    --text-color: #FEFEFE;
+    --box-color: #FEEDED;
+    --chat-shadow: 0px 2px 4px rgba(0,0,0,0.1)
+  }
+
+.container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10vh;
+}
+
+.box-chat {
+    background-color: var(--box-color);
+    border-radius: 25px;
+    width: 100%;
+    padding: 2em;
+    text-align: center; 
+    margin-top: 8em;
+}
+
+.inbox {
+    background-color: var(--secondary-color);
+    border: none;
+    outline: none;
+}
+
+.inbox-white {
+    background-color: #FEFEFE;
+    width : 100%;
+}
+
+.chatspace {
+    background-color: #FEFEFE;
+    width: 100%;
+    height: 65vh;
+    border-radius: none;
+    text-align: center; 
+    overflow: scroll;
+}
+
+.chatinputbox {
+    background-color: var(--secondary-color);
+    border-radius: none;
+    padding: 10px 20px;
+    height: 9vh;
+}
+
+.box-insidechat {
+    height: 1.5rem;
+    padding: 2.5rem;
+}
+
+.box-insidechat-active {
+    height: 1.5vh;
+    padding: 2.5rem;
+    background-color: var(--primary-color);
+    box-shadow: var(--chat-shadow);
+    border-left: 1vh solid #FFB6B6 ;
+}
+
+.textheader {
+    font-size: 2.0em;
+    font-weight: bold;
+}
+
+.textchatheader {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.bgcolor {
+    background-color: var(--primary-color);
+}
+
+.menubgcolor {
+    background-color: var(--secondary-color);
+    padding: 1.2em;
+    height: 8vh;
+}
+
+.button {
+    transition: all .2s ease-in;
+    width: 100px;
+    margin: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    background: rgba(255, 255, 255, 0);
+    color: var(--secondary-color);
+    border: 1px solid var(--secondary-color);
+    box-sizing: border-box;
+    border-radius: 5px;
+}
+
+.button:hover {
+    background: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+  }
+
+.submenu {
+    box-shadow: 0px -4px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--primary-color);
+    height: 9vh;
+}
+.group-list{
+    overflow: auto;
+    height: 59vh;
+}
+.menu-bar{
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+.con{
+    display: flex;
+    flex-direction: column;
+    
+}
+.msg-myself{
+    display: flex;
+    flex-direction: row-reverse;
+    width: 100%;
+    padding: 1vh;
+}
+.msg-other{
+    display: flex;
+    flex-direction: row;
+    justify-content: baseline;
+    width: 100%;
+    text-align: left;
+    padding-left: 1vh;
+    padding: 1vh;
+}
+.profile-img{
+    border-radius: 50px 50px 50px 50px;
+    width: 5vh;
+    height: 5vh;
+}
+.wraper{
+    display: flex;
+    flex-direction: column;
+    width:100%;
+    align-items: flex-end;
+}
+.msg-other .wraper{
+    display: flex;
+    flex-direction: column;
+    width:100%;
+    align-items: flex-start;
+}
+
+.msg-bubble{
+    display: table-cell;
+    background-color: rgb(192, 235, 195);
+    border-radius: 50px 0px 50px 50px;
+    padding-bottom: 0;
+    padding: 1vh;
+    max-width: 70%;
+    margin: 0vh;
+    text-align: left;
+}
+.msg-other .msg-bubble{
+    width: fit-content;
+    border-radius: 0px 50px 50px 50px;
+}
+.msg-bubble p{
+    display: inline-table;
+    width: fit-content;
+    margin: 0.5vh;
+    color: black;
+}
+.wraper .time{
+    display: flex;
+    width: 100%;
+    flex-direction: row-reverse;
+    align-items: flex-end;
+    color: gray;
+}
+.wraper .time #timesend{
+    margin: 0;
+}
+.msg-other .wraper .time{
+    flex-direction: row;
+}
+.msg-other .wraper h6{
+    margin-left: 1vh;
+    font-size: 2rem;
+}
+.msg-myself .wraper h6{
+    margin-right: 1vh;
+    font-size: 2rem;
+}
+.searchbar{
+    background-color: var(--primary-color);
+    height: 6vh;
+}
+.input-bar{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    width: 100%;
+    background-color: white;
+}
+.input-msg-box{
+    background-color: transparent;
+    border: 0;
+    width: 100%;
+    padding-top:1vh ;
+    padding-left: 1vh;
+    overflow: auto;
+    outline: none;
+    line-height: 1.0;
+}
+
+.input-button{
+    right : 0;
+    background-color: var(--primary-color);
+}
