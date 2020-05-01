@@ -121,10 +121,10 @@ class Chat extends React.Component {
       }
       for(let i=0;i<res1.data.length;i++){
         let group = res1.data[i].members
-        console.log(res1.data[i])
+        //console.log(res1.data[i])
         for(let j=0;j<group.length;j++){
-          console.log(group[j])
-          console.log(this.state.members.get(group[j]))
+          //console.log(group[j])
+          //console.log(this.state.members.get(group[j]))
           if(this.state.members.has(group[j])) continue
           try{
             let member = await axios.get(process.env.REACT_APP_BACKEND_URL + "/user/"+group[j])
