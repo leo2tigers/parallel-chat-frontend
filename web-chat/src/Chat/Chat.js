@@ -17,7 +17,6 @@ import {
   getUserId,
   getToken
 } from "../../src/LocalStorageService";
-
 class Chat extends React.Component {
   constructor(props) {
     super(props);
@@ -28,30 +27,41 @@ class Chat extends React.Component {
       group_list: [],
       group_select_id: "",
       messages: [],
-      endpoint: "",
       loadData: false,
       error: { disconenct: "" },
       filter: "",
       sendingMessage : "",
       members : new Map(),
+      socket : null,
     };
     this.chat = React.createRef();
+    this.num = 0
   }
   respose = () => {
-    const socket = socketIOClient(this.state.endpoint);
-    socket.emit("join room", {
-      user_id: this.state.user_id,
-      group_id: this.state.group_select_id
+    this.state.socket.emit('login',{
+      user : this.state.user_id
     });
-    socket.on("load message", async res => {
-      await this.setState({ messages: res });
+    this.state.socket.on('new-message',async(res) => {
+      console.log(res)
+      if(res.group!==this.state.group_select_id) return;
+      let arr = this.state.messages
+      arr.push(res)
+      await this.setState({messages : arr})
+      await this.scrollToBottom()
+      //await this.setState({ messages: res });
     });
-    socket.on("connect", async res => {
-      await this.setState({ messages: [] });
+    this.state.socket.on('connect', res => {
+      console.log("connect")
+      //await this.setState({ messages: res });
     });
-    socket.on("disconnenct", async res => {
-      await this.setState({ ...this.state.error, disconenct: res });
+    this.state.socket.on('disconnect', res => {
+      console.log("disconnect")
+      
+      //await this.setState({ messages: res });
     });
+    this.state.socket.on("change-focused-room-reply", res =>{
+      console.log(res)
+  })
   };
   handleSignOut = async () => {
     await signOut();
@@ -93,7 +103,7 @@ class Chat extends React.Component {
           
         }
       }
-      console.log(this.state.members)
+      //sconsole.log(this.state.members)
      
       await this.setState({ group_list: res1.data,user_name : this.state.members.get(getUserId())});
       console.log(res1.data);
@@ -135,8 +145,12 @@ class Chat extends React.Component {
     if (!getUsername()) {
       window.location.href = "/";
     }
+    if(this.state.socket === null){
+      await this.setState({socket : socketIOClient(process.env.REACT_APP_BACKEND_SOCKET,{transports : ['websocket']})})
+    }
     await this.fetchData();
     await this.fetchGroupMessage()
+    await this.respose();
     await this.scrollToBottom()
     if(this.state.group_select_id !== ""){
     }
@@ -151,16 +165,15 @@ class Chat extends React.Component {
     }
   }
   handleSelect = async (id, name) => {
-    //const socket = socketIOClient(this.state.endpoint);
     await this.setState({
       group_name: name,
       group_select_id: id
     });
     setCurrentGroup(id);
-    /*socket.emit("join room", {
-      user_id: this.state.user_id,
-      group_id: this.state.group_select_id
-    });*/
+    this.state.socket.emit("change-focused-room", {
+      group: this.state.group_select_id
+    });
+    
   };
 
   handleSearch = e => {
@@ -227,16 +240,20 @@ class Chat extends React.Component {
     /// fake message
     if(this.state.sendingMessage === "") return
     try{
-      axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
+      /*axios.defaults.headers.common['Authorization'] = 'Bearer ' + getToken();
       let res = await axios.post(process.env.REACT_APP_BACKEND_URL + "/message",{
         message : this.state.sendingMessage,
         group : this.state.group_select_id,
         sender : this.state.user_id,
+      })*/
+      console.log(this.state.sendingMessage,this.state.group_select_id,this.state.user_id)
+      this.state.socket.emit('send-message',{
+        message : this.state.sendingMessage,
+        group : this.state.group_select_id,
+        user : this.state.user_id,
       })
       this.setState({sendingMessage : ""})
-      await this.fetchGroupMessage()
-      await this.scrollToBottom()
-      console.log(res)
+      //await this.fetchGroupMessage()
     }catch(err){
       console.log(err.response)
     }
