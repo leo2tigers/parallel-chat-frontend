@@ -56,10 +56,14 @@ class Chat extends React.Component {
     });
     this.state.socket.on('disconnect', res => {
       console.log("disconnect")
-      this.state.socket.connect()
+      this.state.socket.emit('login',{
+        user : this.state.user_id
+      })
       //await this.setState({ messages: res });
     });
     this.state.socket.on("change-focused-room-reply", res =>{
+      this.fetchGroupData()
+      this.fetchGroupMessage()
       //console.log(res)
     })
     this.state.socket.on('user-join',async res=>{
@@ -70,6 +74,7 @@ class Chat extends React.Component {
     this.state.socket.on('user-leave',async res=>{
       console.log(res)
       this.fetchGroupData()
+      this.fetchGroupMessage()
     });
     this.state.socket.on('new-group',async res=>{
       console.log(res)
