@@ -1,6 +1,6 @@
 import React from "react";
 import "./Login.css";
-import { signIn , setToken, getUsername,getUserId,getToken} from "../../src/LocalStorageService";
+import { signIn , setToken, getUsername,getUserId,getToken} from "../LocalStorageService";
 import axios from "axios";
 class Login extends React.Component {
   constructor(props) {
